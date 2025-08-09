@@ -21,7 +21,6 @@ SL_UNDER_ATTACK_S="under_attack"
 #config
 debug_mode=0 # 1 = true, 0 = false, adds more logging & lets you edit vars to test the script
 install_parent_path="/home"
-cf_email=""
 cf_apikey=""
 cf_zoneid=""
 upper_cpu_limit=35 # 10 = 10% load, 20 = 20% load.  Total load, taking into account # of cores
@@ -78,8 +77,7 @@ uninstall() {
 
 disable_uam() {
   curl -X PATCH "https://api.cloudflare.com/client/v4/zones/$cf_zoneid/settings/security_level" \
-    -H "X-Auth-Email: $cf_email" \
-    -H "X-Auth-Key: $cf_apikey" \
+    -H "Authorization: Bearer $cf_apikey" \
     -H "Content-Type: application/json" \
     --data "{\"value\":\"$regular_status_s\"}" &>/dev/null
 
@@ -91,8 +89,7 @@ disable_uam() {
 
 enable_uam() {
   curl -X PATCH "https://api.cloudflare.com/client/v4/zones/$cf_zoneid/settings/security_level" \
-    -H "X-Auth-Email: $cf_email" \
-    -H "X-Auth-Key: $cf_apikey" \
+    -H "Authorization: Bearer $cf_apikey" \
     -H "Content-Type: application/json" \
     --data '{"value":"under_attack"}' &>/dev/null
 
@@ -110,8 +107,7 @@ get_current_load() {
 
 get_security_level() {
   curl -X GET "https://api.cloudflare.com/client/v4/zones/$cf_zoneid/settings/security_level" \
-    -H "X-Auth-Email: $cf_email" \
-    -H "X-Auth-Key: $cf_apikey" \
+    -H "Authorization: Bearer $cf_apikey" \
     -H "Content-Type: application/json" 2>/dev/null |
     awk -F":" '{ print $4 }' | awk -F',' '{ print $1 }' | tr -d '"' >$install_parent_path"/cfautouam/cfstatus"
 
@@ -151,7 +147,7 @@ main() {
 
   if [ $debug_mode == 1 ]; then
     debug_mode=1 # random inconsequential line needed to hide a dumb shellcheck error
-	#edit vars here to debug the script
+        #edit vars here to debug the script
     #curr_load=5
     #time_limit_before_revert=15
   fi
